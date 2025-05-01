@@ -42,12 +42,14 @@ class SinkhornStep():
         store_outer_evals: bool = False,
         store_history: bool = False,
         tensor_args: Optional[Mapping[str, Any]] = None,
+        vae = None,
         **kwargs: Any,
     ) -> None:
         if tensor_args is None:
             tensor_args = {'device': 'cpu', 'dtype': torch.float32}
         self.tensor_args = tensor_args
         self.dim = dim
+        # print(dim)
         self.objective_fn = objective_fn
 
         # Sinkhorn Step params
@@ -66,6 +68,7 @@ class SinkhornStep():
         self.store_inner_errors = store_inner_errors
         self.store_outer_evals = store_outer_evals
         self.store_history = store_history
+        self.vae = vae
 
         # TODO: support non-uniform weights for conditional sinkhorn step
 
@@ -104,27 +107,46 @@ class SinkhornStep():
         X = state.X.clone()
 
         # scale state features into same range
-        if self.state_scalers is not None:
-            for scaler in self.state_scalers:
-                scaler(X)
+        # if self.state_scalers is not None:
+        #         for scaler in self.state_scalers:
+                    
+        #             scaler(X)
 
         eps = self.epsilon.at(iteration) if isinstance(self.epsilon, Epsilon) else self.epsilon
         self.step_radius = self.step_radius * (1 - eps)
         self.probe_radius = self.probe_radius * (1 - eps)
 
         # compute sampled polytope vertices
-        X_vertices, X_probe, vertices = get_sampled_polytope_vertices(X,
+        if self.vae is not None:
+            with torch.no_grad():
+                mu, sigma = self.vae.encode(X)
+                X_lat = self.vae.reparameterization(mu,sigma)
+
+            X_vertices, X_probe_lat, vertices = get_sampled_polytope_vertices(X_lat,
                                                                       polytope_vertices=self.polytope_vertices,
                                                                       step_radius=self.step_radius,
                                                                       probe_radius=self.probe_radius,
                                                                       num_probe=self.num_probe)
+        else:
+            
+            X_vertices, X_probe, vertices = get_sampled_polytope_vertices(X,
+                                                                      polytope_vertices=self.polytope_vertices,
+                                                                      step_radius=self.step_radius,
+                                                                      probe_radius=self.probe_radius,
+                                                                      num_probe=self.num_probe)
+            
+        
+        
+        if self.vae is not None:
+            with torch.no_grad():
+                X_probe = self.vae.decode(X_probe_lat)
+                X_vertices = self.vae.decode(X_vertices)
         
         # unscale for cost evaluation
-        if self.state_scalers is not None:
-            for scaler in self.state_scalers:
-                scaler.inverse(X_vertices)
-                scaler.inverse(X_probe)
-
+        # if self.state_scalers is not None:
+        #         for scaler in self.state_scalers:
+        #             # scaler.inverse(X_vertices)
+        #             scaler.inverse(X_probe)
         # solve Sinkhorn
         optim_dim = X_probe.shape[:-1]
         C = self.objective_fn(X_probe, current_trajs=state.X, optim_dim=optim_dim, **kwargs)
@@ -133,7 +155,12 @@ class SinkhornStep():
 
         # barycentric projection
         X_new = torch.einsum('bik,bi->bk', X_vertices, W / state.a.unsqueeze(-1))
-
+        # if self.vae is not None:
+        #     with torch.no_grad():
+        #         X_new = self.vae.decode(X_new)
+        # if self.state_scalers is not None:
+        #         for scaler in self.state_scalers:
+        #             scaler.inverse(X_new)
         if self.store_outer_evals:
             state.costs[iteration] = self.objective_fn.cost(X_new, **kwargs).mean()
 
