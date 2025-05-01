@@ -160,14 +160,14 @@ if __name__ == "__main__":
         trajs=traj_history,
         pos_start_state=start_state,
         vel_start_state=torch.zeros_like(start_state),
-        video_filepath=f'{base_file_name}-joint-space-opt-iters.mp4',
+        video_filepath=f'{base_file_name}-joint-space-opt-iters.gif',
         n_frames=max((2, opt_iters // 5)),
         anim_time=5
     )
 
     planner_visualizer.animate_opt_iters_robots(
         trajs=pos_trajs_iters, start_state=start_state,
-        video_filepath=f'{base_file_name}-traj-opt-iters.mp4',
+        video_filepath=f'{base_file_name}-traj-opt-iters.gif',
         n_frames=max((2, opt_iters// 5)),
         anim_time=5
     )

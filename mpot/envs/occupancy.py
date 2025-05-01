@@ -17,15 +17,15 @@ class EnvOccupancy2D(EnvBase):
             map_dim=[20, 20],
             cell_size=0.1,
             num_obst=15,
-            rand_xy_limits=[[-7.5, 7.5], [-7.5, 7.5]],
-            rand_rect_shape=[2, 2],
-            rand_circle_radius=1.,
+            rand_xy_limits=[[-0.75, 0.75], [-0.75, 0.75]],
+            rand_rect_shape=[0.2, 0.2],
+            rand_circle_radius=0.1,
             tensor_args=tensor_args
         )
 
         super().__init__(
             name=self.__class__.__name__,
-            limits=torch.tensor([[-10, -10], [10, 10]], **tensor_args),  # environments limits
+            limits=torch.tensor([[-1, -1], [1, 1]], **tensor_args),  # environments limits
             obj_fixed_list=obj_list,
             tensor_args=tensor_args,
             **kwargs

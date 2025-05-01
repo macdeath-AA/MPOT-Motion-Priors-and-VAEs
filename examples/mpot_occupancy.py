@@ -1,4 +1,5 @@
 import os
+import pickle
 from pathlib import Path
 import time
 import matplotlib.pyplot as plt
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     tensor_args = {'device': device, 'dtype': torch.float32}
 
     # ---------------------------- Environment, Robot, PlanningTask ---------------------------------
-    q_limits = torch.tensor([[-10, -10], [10, 10]], **tensor_args)
+    q_limits = torch.tensor([[-2, -2], [2, 2]], **tensor_args)
     env = EnvOccupancy2D(
         precompute_sdf_obj_fixed=False,
         tensor_args=tensor_args
@@ -51,8 +52,8 @@ if __name__ == "__main__":
 
     # -------------------------------- Params ---------------------------------
     # NOTE: these parameters are tuned for this environment
-    step_radius = 0.15
-    probe_radius = 0.15  # probe radius >= step radius
+    step_radius = 0.0
+    probe_radius = 0.0  # probe radius >= step radius
 
     # NOTE: changing polytope may require tuning again
     polytope = 'cube'  # 'simplex' | 'orthoplex' | 'cube';
@@ -60,23 +61,21 @@ if __name__ == "__main__":
     epsilon = 0.01
     ent_epsilon = Epsilon(1e-2)
     num_probe = 5  # number of probes points for each polytope vertices
-    num_particles_per_goal = 33  # number of plans per goal
-    pos_limits = [-10, 10]
-    vel_limits = [-10, 10]
-    w_coll = 5e-3  # for tuning the obstacle cost
-    w_smooth = 1e-7  # for tuning the GP cost: error = w_smooth * || Phi x(t) - x(1+1) ||^2
+    num_particles_per_goal = 25  # number of plans per goal
+    pos_limits = [-1, 1]
+    vel_limits = [-1, 1]
+    w_coll = 1e-2  # for tuning the obstacle cost
+    w_smooth = 6e-7  # for tuning the GP cost: error = w_smooth * || Phi x(t) - x(1+1) ||^2
     sigma_gp = 0.1   # for tuning the GP cost: Q_c = sigma_gp^2 * I
     sigma_gp_init = 1.6   # for controlling the initial GP variance: Q0_c = sigma_gp_init^2 * I
     max_inner_iters = 100  # max inner iterations for Sinkhorn-Knopp
     max_outer_iters = 100  # max outer iterations for MPOT
     
-    start_state = torch.tensor([-9, -9, 0., 0.], **tensor_args)
+    start_state = torch.tensor([-0.3734, -0.3254,0,0], **tensor_args)
 
     # NOTE: change goal states here (zero vel goals)
     multi_goal_states = torch.tensor([
-        [0, 9, 0., 0.],
-        [9, 9, 0., 0.],
-        [9, 0, 0., 0.]
+        [-0.0439,  0.6703,0,0],
     ], **tensor_args)
 
     traj_len = 64
@@ -138,6 +137,7 @@ if __name__ == "__main__":
         sigma_gp_init=sigma_gp_init,
         seed=seed,
         tensor_args=tensor_args,
+        results_file_path= "examples/results_data_dict_cpu.pickle",
     )
     planner = MPOT(**mpot_params)
 
@@ -167,14 +167,14 @@ if __name__ == "__main__":
         trajs=traj_history,
         pos_start_state=start_state,
         vel_start_state=torch.zeros_like(start_state),
-        video_filepath=f'{base_file_name}-joint-space-opt-iters.mp4',
+        video_filepath=f'{base_file_name}-joint-space-opt-iters.gif',
         n_frames=max((2, opt_iters // 5)),
         anim_time=5
     )
 
     planner_visualizer.animate_opt_iters_robots(
         trajs=pos_trajs_iters, start_state=start_state,
-        video_filepath=f'{base_file_name}-traj-opt-iters.mp4',
+        video_filepath=f'{base_file_name}-traj-opt-iters.gif',
         n_frames=max((2, opt_iters // 5)),
         anim_time=5
     )

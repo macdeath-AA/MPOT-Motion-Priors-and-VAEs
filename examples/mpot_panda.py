@@ -190,7 +190,7 @@ if __name__ == "__main__":
         trajs=traj_history,
         pos_start_state=start_state, pos_goal_state=goal_state,
         vel_start_state=torch.zeros_like(start_state), vel_goal_state=torch.zeros_like(goal_state),
-        video_filepath=f'{base_file_name}-joint-space-opt-iters.mp4',
+        video_filepath=f'{base_file_name}-joint-space-opt-iters.gif',
         n_frames=max((2, opt_iters // 2)),
         anim_time=5
     )
@@ -200,7 +200,7 @@ if __name__ == "__main__":
             trajs=trajs_free, start_state=start_state, goal_state=goal_state,
             plot_trajs=False,
             draw_links_spheres=False,
-            video_filepath=f'{base_file_name}-robot-traj.mp4',
+            video_filepath=f'{base_file_name}-robot-traj.gif',
             # n_frames=max((2, pos_trajs_iters[-1].shape[1]//10)),
             n_frames=trajs_free.shape[-2],
             anim_time=duration
