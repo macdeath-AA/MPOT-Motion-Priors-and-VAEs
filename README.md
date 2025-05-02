@@ -1,6 +1,7 @@
-# Accelerating Motion Planning via Optimal Transport
+# Guided OT based Motion Planning with VAEs
 
-This repository implements Motion Planning via Optimal Transport `mpot` in PyTorch. 
+This repository improves the [Motion Planning via Optimal Transport (MPOT)](https://github.com/anindex/mpot) framework by replacing GP priors with motion priors based on diffusion models. We also address the challenge of high-dimensional optimization by using Variational Auto-Encoders (VAEs) to project the optimization problem into a lower-dimensional latent space.
+
 The philosophy of `mpot` follows the Monte Carlo methods' argument, i.e., more samples could discover more better modes with high enough initialization variances.
 In other words, within the multi-modal motion planning scope, `mpot` enables better **brute-force** planning with GPU vectorization. This enhances robustness against bad local minima, a common issue in optimization-based motion planning.
 
@@ -10,13 +11,6 @@ In other words, within the multi-modal motion planning scope, `mpot` enables bet
   <img src="demos/panda.gif" width="32%" />
 </p>
 
-For those interested in standalone Sinkhorn Step as a general-purpose batch gradient-free solver for non-convex optimization problems, please check out [ssax](https://github.com/anindex/ssax).
-
-## Paper Preprint
-
-This work has been accepted to NeurIPS 2023. Please find the pre-print here:
-
-[<img src="https://img.shields.io/badge/arxiv-%23B31B1B.svg?&style=for-the-badge&logo=arxiv&logoColor=white" />](https://www.ias.informatik.tu-darmstadt.de/uploads/Team/AnThaiLe/mpot_preprint.pdf)
 
 ## Installation
 
@@ -42,7 +36,7 @@ and with signed-distance-field (SDF):
 python examples/mpot_sdf.py
 ```
 
-We also added a demo with vectorized Panda planning with dense obstacle environments (SDF):
+There is also a demo with vectorized Panda planning with dense obstacle environments (SDF):
 
 ```azure
 python examples/mpot_panda.py
@@ -73,16 +67,7 @@ to reduce memory fragmentation.
 
 ## Acknowledgement
 
-The Gaussian Process prior implementation is adapted from Sasha Lambert's [`mpc_trajopt`](https://github.com/sashalambert/mpc_trajopt/blob/main/mpc_trajopt/factors/gp_factor.py).
+This work has been inspired by the original MPOT framework, the link to which is added below
 
-## Citation
+[<img src="https://img.shields.io/badge/arxiv-%23B31B1B.svg?&style=for-the-badge&logo=arxiv&logoColor=white" />](https://www.ias.informatik.tu-darmstadt.de/uploads/Team/AnThaiLe/mpot_preprint.pdf)
 
-If you found this repository useful, please consider citing these references:
-
-```azure
-@inproceedings{le2023accelerating,
-  title={Accelerating Motion Planning via Optimal Transport},
-  author={Le, An T. and Chalvatzaki, Georgia and Biess, Armin and Peters, Jan},
-  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
-  year={2023}
-}
